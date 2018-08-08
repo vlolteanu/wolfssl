@@ -240,9 +240,9 @@ int EmbedSend(WOLFSSL* ssl, char *buf, int sz, void *ctx)
     int sd = *(int*)ctx;
     int sent;
 
-    if (ssl->tfoAddrLen) {
+    if (!ssl->tfoConnectAttempted && ssl->tfoAddrLen) {
         sent = sendto(sd, buf, sz, MSG_FASTOPEN | ssl->wflags, (struct sockaddr *)&ssl->tfoAddr, ssl->tfoAddrLen);
-        ssl->tfoAddrLen = 0;
+        ssl->tfoConnectAttempted = 1;
     }
     else {
         sent = wolfIO_Send(sd, buf, sz, ssl->wflags);
