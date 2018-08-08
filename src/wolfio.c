@@ -38,6 +38,8 @@
 #include <wolfssl/error-ssl.h>
 #include <wolfssl/wolfio.h>
 
+#include <string.h>
+
 #if defined(HAVE_HTTP_CLIENT)
     #include <stdlib.h>   /* atoi(), strtol() */
 #endif
@@ -238,7 +240,13 @@ int EmbedSend(WOLFSSL* ssl, char *buf, int sz, void *ctx)
     int sd = *(int*)ctx;
     int sent;
 
-    sent = wolfIO_Send(sd, buf, sz, ssl->wflags);
+    if (ssl->tfoAddrLen) {
+        sent = sendto(sd, buf, sz, MSG_FASTOPEN | ssl->wflags, (struct sockaddr *)&ssl->tfoAddr, ssl->tfoAddrLen);
+        ssl->tfoAddrLen = 0;
+    }
+    else {
+        sent = wolfIO_Send(sd, buf, sz, ssl->wflags);
+    }
     if (sent < 0) {
         int err = wolfSSL_LastError();
         WOLFSSL_MSG("Embed Send error");
@@ -258,6 +266,10 @@ int EmbedSend(WOLFSSL* ssl, char *buf, int sz, void *ctx)
         else if (err == SOCKET_EPIPE) {
             WOLFSSL_MSG("\tSocket EPIPE");
             return WOLFSSL_CBIO_ERR_CONN_CLOSE;
+        }
+        else if (err == EINPROGRESS) {
+            WOLFSSL_MSG("\tConnect in progress");
+            return WOLFSSL_CBIO_ERR_WANT_WRITE;
         }
         else {
             WOLFSSL_MSG("\tGeneral error");
@@ -1487,6 +1499,12 @@ WOLFSSL_API void wolfSSL_SetIOReadFlags(WOLFSSL* ssl, int flags)
 WOLFSSL_API void wolfSSL_SetIOWriteFlags(WOLFSSL* ssl, int flags)
 {
     ssl->wflags = flags;
+}
+
+WOLFSSL_API void wolfSSL_SetTFOAddr(WOLFSSL* ssl, const struct sockaddr_storage *addr, socklen_t addrLen)
+{
+    memcpy(&ssl->tfoAddr, addr, addrLen);
+    ssl->tfoAddrLen = addrLen;
 }
 
 

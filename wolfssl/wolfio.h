@@ -398,6 +398,8 @@ WOLFSSL_API void* wolfSSL_GetIOWriteCtx(WOLFSSL* ssl);
 WOLFSSL_API void wolfSSL_SetIOReadFlags( WOLFSSL* ssl, int flags);
 WOLFSSL_API void wolfSSL_SetIOWriteFlags(WOLFSSL* ssl, int flags);
 
+WOLFSSL_API void wolfSSL_SetTFOAddr(WOLFSSL* ssl, const struct sockaddr_storage *addr, socklen_t addrLen);
+
 
 #ifdef HAVE_NETX
     WOLFSSL_LOCAL int NetX_Receive(WOLFSSL *ssl, char *buf, int sz, void *ctx);
@@ -470,7 +472,6 @@ WOLFSSL_API void wolfSSL_SetIOWriteFlags(WOLFSSL* ssl, int flags);
 #ifndef WOLFSSL_IP6
     #define WOLFSSL_IP6 AF_INET6
 #endif
-
 
 #ifdef __cplusplus
     }  /* extern "C" */

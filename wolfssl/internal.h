@@ -3828,6 +3828,8 @@ struct WOLFSSL {
     EarlyDataState earlyData;
     word32 earlyDataSz;
 #endif
+    struct sockaddr_storage tfoAddr;
+    socklen_t tfoAddrLen;
 };
 
 
